@@ -1,0 +1,33 @@
+{
+  "name": "bookme-backend",
+  "version": "1.0.0",
+  "description": "Bookme — Multi-tenant Booking & Reservation API Server",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "db:migrate": "psql $DATABASE_URL -f db/schema.sql",
+    "db:seed": "psql $DATABASE_URL -f db/seed.sql"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "bullmq": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.11.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

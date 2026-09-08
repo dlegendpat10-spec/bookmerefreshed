@@ -1,0 +1,60 @@
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+import authRoutes from './routes/auth';
+import serviceRoutes from './routes/services';
+import customerRoutes from './routes/customers';
+import bookingRoutes from './routes/bookings';
+import slotRoutes from './routes/slots';
+import availabilityRoutes from './routes/availability';
+import dashboardRoutes from './routes/dashboard';
+import { sendError } from './utils/response';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// CORS & Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Liveness & Health check
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API v1 Routes
+const API_PREFIX = '/api/v1';
+
+app.use(API_PREFIX, authRoutes);
+app.use(API_PREFIX, serviceRoutes);
+app.use(API_PREFIX, customerRoutes);
+app.use(API_PREFIX, bookingRoutes);
+app.use(API_PREFIX, slotRoutes);
+app.use(API_PREFIX, availabilityRoutes);
+app.use(API_PREFIX, dashboardRoutes);
+
+// 404 Route Handler
+app.use((req: Request, res: Response) => {
+  sendError(res, `Route not found: ${req.method} ${req.path}`, 404);
+});
+
+// Global Error Handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Unhandled server error:', err);
+  sendError(res, 'Internal Server Error', 500);
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Bookme REST API Server running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`API Base URL: http://localhost:${PORT}${API_PREFIX}`);
+});
+
+export default app;
