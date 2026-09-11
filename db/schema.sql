@@ -1,9 +1,8 @@
 -- ===================================================================
--- BOOKME — DATABASE SCHEMA (PostgreSQL / Supabase DDL)
--- Version: 1.0
--- Database: Supabase PostgreSQL (or standard PostgreSQL 14+)
--- Features: Multi-tenancy, RLS, GIST exclusion lock for zero double-booking,
---           Stored procedures for slot generation, Auto updated_at triggers.
+-- BOOKME — DATABASE SCHEMA & QUERY SUITE (PostgreSQL / Supabase DDL)
+-- Target Database: PostgreSQL 14+ / Supabase PostgreSQL
+-- Features: Multi-tenancy, Row Level Security (RLS), GIST Exclusion Lock
+--           for zero double-booking, Stored Procedures, and Seed Data.
 -- ===================================================================
 
 -- -------------------------------------------------------------------
@@ -40,7 +39,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- -------------------------------------------------------------------
--- 3. TRIGGER FUNCTION: UPDATED_AT TIMESTAMP
+-- 3. TRIGGER FUNCTION: AUTO UPDATED_AT TIMESTAMP
 -- -------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
@@ -203,7 +202,7 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 );
 
 -- -------------------------------------------------------------------
--- 5. INDEXES
+-- 5. INDEXES FOR HIGH-PERFORMANCE QUERYING
 -- -------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_businesses_slug ON businesses(slug);
 CREATE INDEX IF NOT EXISTS idx_services_business ON services(business_id, is_active);
@@ -346,7 +345,7 @@ ALTER TABLE business_hours     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocked_dates      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles     ENABLE ROW LEVEL SECURITY;
 
--- Public Access (Booking Flow)
+-- Public Access Policies (Booking Flow)
 CREATE POLICY "public_read_businesses" ON businesses FOR SELECT USING (TRUE);
 CREATE POLICY "public_read_active_services" ON services FOR SELECT USING (is_active = TRUE);
 CREATE POLICY "public_read_business_hours" ON business_hours FOR SELECT USING (TRUE);
@@ -369,3 +368,103 @@ CREATE POLICY "admin_manage_hours" ON business_hours FOR ALL
 
 CREATE POLICY "admin_manage_blocked_dates" ON blocked_dates FOR ALL
   USING (business_id = (SELECT business_id FROM admin_profiles WHERE id = auth.uid()));
+
+-- -------------------------------------------------------------------
+-- 9. SEED DATA (DEFAULT TENANT & INITIAL RECORDS)
+-- -------------------------------------------------------------------
+INSERT INTO businesses (
+  id, name, short_name, slug, tagline, description, logo_url,
+  initials, accent_color, currency, currency_symbol, locale, timezone, time_format,
+  phone, email, address, booking_lead_time_hours, slot_interval_minutes, max_booking_days_ahead,
+  social_instagram, social_twitter, social_whatsapp
+) VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  'Bookme Appointments',
+  'Bookme',
+  'luxe-grooming',
+  'Professional Appointment Scheduling',
+  'Premium booking platform for advisory, consulting, and appointments.',
+  NULL,
+  'BM',
+  '#10B981',
+  'NGN',
+  '₦',
+  'en-NG',
+  'Africa/Lagos',
+  '12h',
+  '+234 800 000 0000',
+  'hello@bookme.app',
+  'Lagos, Nigeria',
+  1,
+  30,
+  60,
+  NULL, NULL, NULL
+) ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO admin_profiles (
+  id, business_id, full_name, email, role
+) VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000001',
+  'Platform Admin',
+  'admin@bookme.app',
+  'BUSINESS_ADMIN'
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO business_hours (business_id, day_of_week, day_name, opening_time, closing_time, is_open)
+VALUES
+  ('00000000-0000-0000-0000-000000000001', 0, 'Sunday',    '09:00', '13:00', FALSE),
+  ('00000000-0000-0000-0000-000000000001', 1, 'Monday',    '09:00', '17:00', TRUE),
+  ('00000000-0000-0000-0000-000000000001', 2, 'Tuesday',   '09:00', '17:00', TRUE),
+  ('00000000-0000-0000-0000-000000000001', 3, 'Wednesday', '09:00', '17:00', TRUE),
+  ('00000000-0000-0000-0000-000000000001', 4, 'Thursday',  '09:00', '17:00', TRUE),
+  ('00000000-0000-0000-0000-000000000001', 5, 'Friday',    '09:00', '17:00', TRUE),
+  ('00000000-0000-0000-0000-000000000001', 6, 'Saturday',  '10:00', '14:00', TRUE)
+ON CONFLICT (business_id, day_of_week) DO UPDATE SET
+  opening_time = EXCLUDED.opening_time,
+  closing_time = EXCLUDED.closing_time,
+  is_open      = EXCLUDED.is_open;
+
+INSERT INTO services (id, business_id, name, description, duration_minutes, buffer_minutes, price, is_active, icon, category)
+VALUES
+  (
+    '11111111-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    'Discovery Call',
+    'A free 30-minute introductory session to understand your educational needs and goals.',
+    30, 0, 0.00, TRUE, '🎯', 'intro'
+  ),
+  (
+    '11111111-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    'Initial Consultation',
+    'A comprehensive 90-minute deep-dive session covering academic history, learning style, and a customised study plan.',
+    90, 15, 25000.00, TRUE, '📋', 'consultation'
+  ),
+  (
+    '11111111-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000001',
+    'Follow-up Session',
+    'A 45-minute progress review and strategy adjustment session for existing clients.',
+    45, 0, 10000.00, TRUE, '🔄', 'session'
+  ),
+  (
+    '11111111-0000-0000-0000-000000000004',
+    '00000000-0000-0000-0000-000000000001',
+    'Full Academic Assessment',
+    'An in-depth 2-hour assessment covering skill gaps, subject-by-subject analysis, and a detailed report with recommendations.',
+    120, 15, 45000.00, TRUE, '📊', 'assessment'
+  )
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  price = EXCLUDED.price,
+  is_active = EXCLUDED.is_active;
+
+INSERT INTO customers (id, business_id, first_name, last_name, email, phone, notes)
+VALUES
+  ('22222222-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Amara', 'Okonkwo', 'amara.o@gmail.com', '+234 813 456 7890', 'Preparing for JAMB 2026. Very motivated student.'),
+  ('22222222-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Emeka', 'Nwosu', 'emeka.nwosu@yahoo.com', '+234 802 987 6543', 'Parent-referred. Needs help with Maths and English.')
+ON CONFLICT (business_id, email) DO UPDATE SET
+  first_name = EXCLUDED.first_name,
+  last_name = EXCLUDED.last_name,
+  phone = EXCLUDED.phone;
