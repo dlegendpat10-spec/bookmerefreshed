@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { safeQuery, SEED_SERVICES } from '../db/pool';
+import { safeQuery } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 
@@ -14,12 +14,11 @@ export async function getServices(req: Request, res: Response) {
       ? `SELECT * FROM services WHERE business_id = $1 ORDER BY created_at DESC`
       : `SELECT * FROM services WHERE business_id = $1 AND is_active = TRUE ORDER BY price ASC, name ASC`;
 
-    const { rows } = await safeQuery(query, [businessId], SEED_SERVICES);
-    const resultRows = rows && rows.length > 0 ? rows : SEED_SERVICES;
-    return sendSuccess(res, resultRows);
+    const { rows } = await safeQuery(query, [businessId]);
+    return sendSuccess(res, rows || []);
   } catch (error: any) {
     console.error('getServices error:', error);
-    return sendSuccess(res, SEED_SERVICES);
+    return sendError(res, 'Failed to retrieve services from database', 500);
   }
 }
 
@@ -27,12 +26,14 @@ export async function getServiceById(req: Request, res: Response) {
   const { id } = req.params;
 
   try {
-    const { rows } = await safeQuery(`SELECT * FROM services WHERE id = $1`, [id], SEED_SERVICES);
-    const match = rows.find((s: any) => s.id === id) || SEED_SERVICES.find(s => s.id === id) || SEED_SERVICES[0];
-    return sendSuccess(res, match);
+    const { rows } = await safeQuery(`SELECT * FROM services WHERE id = $1`, [id]);
+    if (!rows || rows.length === 0) {
+      return sendError(res, 'Service not found', 404);
+    }
+    return sendSuccess(res, rows[0]);
   } catch (error: any) {
     console.error('getServiceById error:', error);
-    return sendSuccess(res, SEED_SERVICES[0]);
+    return sendError(res, 'Failed to retrieve service', 500);
   }
 }
 
@@ -60,20 +61,7 @@ export async function createService(req: AuthenticatedRequest, res: Response) {
         icon || '🎯',
         category || 'general',
         is_active ?? true,
-      ],
-      [{
-        id: 'svc-' + Date.now(),
-        business_id: businessId,
-        name,
-        description: description || '',
-        duration_minutes,
-        buffer_minutes: buffer_minutes || 0,
-        price: price || 0.00,
-        icon: icon || '🎯',
-        category: category || 'general',
-        is_active: is_active ?? true,
-        created_at: new Date().toISOString()
-      }]
+      ]
     );
 
     return sendSuccess(res, rows[0], 201);
@@ -102,11 +90,10 @@ export async function updateService(req: AuthenticatedRequest, res: Response) {
            updated_at = NOW()
        WHERE id = $9 AND business_id = $10
        RETURNING *`,
-      [name, description, duration_minutes, buffer_minutes, price, icon, category, is_active, id, businessId],
-      [{ id, name, description, duration_minutes, price, is_active }]
+      [name, description, duration_minutes, buffer_minutes, price, icon, category, is_active, id, businessId]
     );
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return sendError(res, 'Service not found or unauthorized', 404);
     }
 
@@ -124,11 +111,10 @@ export async function deleteService(req: AuthenticatedRequest, res: Response) {
   try {
     const { rows } = await safeQuery(
       `UPDATE services SET is_active = FALSE, updated_at = NOW() WHERE id = $1 AND business_id = $2 RETURNING id`,
-      [id, businessId],
-      [{ id }]
+      [id, businessId]
     );
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return sendError(res, 'Service not found or unauthorized', 404);
     }
 
