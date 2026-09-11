@@ -9,7 +9,7 @@ import bookingRoutes from './routes/bookings';
 import slotRoutes from './routes/slots';
 import availabilityRoutes from './routes/availability';
 import dashboardRoutes from './routes/dashboard';
-import { sendError } from './utils/response';
+import { sendSuccess, sendError } from './utils/response';
 
 dotenv.config();
 
@@ -37,9 +37,36 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root welcome & API info endpoint (Handles GET /)
+app.get('/', (req: Request, res: Response) => {
+  sendSuccess(res, {
+    message: 'Bookme REST API Server',
+    status: 'online',
+    version: '1.0.0',
+    healthCheck: '/health',
+    apiBaseUrl: '/api/v1',
+  });
+});
+
 // Liveness & Health check
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API v1 Base Route Info
+app.get('/api/v1', (req: Request, res: Response) => {
+  sendSuccess(res, {
+    message: 'Bookme API v1 Endpoints',
+    status: 'online',
+    endpoints: [
+      'GET /health',
+      'GET /api/v1/services?slug=luxe-grooming',
+      'GET /api/v1/slots?serviceId=...&date=YYYY-MM-DD',
+      'POST /api/v1/bookings',
+      'POST /api/v1/auth/customer/sign-in',
+      'GET /api/v1/dashboard/stats',
+    ],
+  });
 });
 
 // API v1 Routes
