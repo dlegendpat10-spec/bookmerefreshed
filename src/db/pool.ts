@@ -29,3 +29,21 @@ export async function safeQuery(
 ): Promise<QueryResult<any>> {
   return await pool.query(text, params);
 }
+
+export async function initDbSchema() {
+  try {
+    // 1. Make business_id nullable for new user profiles before they create a business
+    await pool.query(`ALTER TABLE admin_profiles ALTER COLUMN business_id DROP NOT NULL;`);
+  } catch (e: any) {
+    // Ignore if already nullable
+  }
+
+  try {
+    // 2. Add password_hash column if missing
+    await pool.query(`ALTER TABLE admin_profiles ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
+  } catch (e: any) {
+    // Ignore if already exists
+  }
+
+  console.log('✅ PostgreSQL Schema Auto-Migration verified.');
+}

@@ -11,6 +11,7 @@ import slotRoutes from './routes/slots';
 import availabilityRoutes from './routes/availability';
 import dashboardRoutes from './routes/dashboard';
 import { sendSuccess, sendError } from './utils/response';
+import { initDbSchema } from './db/pool';
 
 dotenv.config();
 
@@ -93,13 +94,14 @@ app.use((req: Request, res: Response) => {
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Unhandled server error:', err);
-  sendError(res, 'Internal Server Error', 500);
+  sendError(res, err?.message || 'Internal Server Error', 500);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Bookme REST API Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`API Base URL: http://localhost:${PORT}${API_PREFIX}`);
+  await initDbSchema();
 });
 
 export default app;

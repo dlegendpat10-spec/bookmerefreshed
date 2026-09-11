@@ -163,10 +163,11 @@ CREATE TABLE IF NOT EXISTS blocked_dates (
 
 -- TABLE 7: ADMIN_PROFILES (Linked to Supabase auth.users or local auth)
 CREATE TABLE IF NOT EXISTS admin_profiles (
-  id                       UUID PRIMARY KEY,
-  business_id              UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  id                       UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id              UUID REFERENCES businesses(id) ON DELETE CASCADE,
   full_name                VARCHAR(255) NOT NULL,
-  email                    VARCHAR(255) NOT NULL,
+  email                    VARCHAR(255) UNIQUE NOT NULL,
+  password_hash            VARCHAR(255),
   role                     user_role NOT NULL DEFAULT 'BUSINESS_ADMIN',
   created_at               TIMESTAMPTZ DEFAULT NOW()
 );
