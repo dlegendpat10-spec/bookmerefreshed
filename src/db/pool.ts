@@ -5,18 +5,26 @@ dotenv.config();
 
 function getConnectionString(): string {
   const raw = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bookme';
+  // Unwrap bracket-encoded passwords e.g. :[password]@
   return raw.replace(/:\[([^\]]+)\]@/, ':$1@');
 }
 
 const connectionString = getConnectionString();
+const isPgBouncer = connectionString.includes('pgbouncer=true') || connectionString.includes(':6543/');
 const isRemoteDb = connectionString.includes('supabase.com') || connectionString.includes('render.com') || process.env.NODE_ENV === 'production';
+
+if (!process.env.DATABASE_URL) {
+  console.warn('⚠️  DATABASE_URL is not set — falling back to localhost. This will fail in production!');
+}
 
 export const pool = new Pool({
   connectionString,
   ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
-  max: 10,
+  max: isPgBouncer ? 5 : 10,           // PgBouncer already pools; keep client count low
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 8000,
+  // Disable statement caching when running through PgBouncer (transaction mode)
+  ...(isPgBouncer && { statement_timeout: 30000 }),
 });
 
 pool.on('error', (err) => {

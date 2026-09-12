@@ -63,8 +63,10 @@ export async function register(req: Request, res: Response) {
       access_token: token,
     }, 201);
   } catch (error: any) {
-    console.error('Registration error:', error);
-    return sendError(res, 'Internal Server Error during registration', 500);
+    console.error('Registration error:', error?.message || error);
+    console.error('Registration error code:', error?.code);
+    console.error('Registration error detail:', error?.detail);
+    return sendError(res, `Registration failed: ${error?.message || 'Internal Server Error'}`, 500);
   }
 }
 
