@@ -4,6 +4,8 @@ import {
   getBookingById,
   createBooking,
   updateBookingStatus,
+  respondToBooking,
+  getEmailNotifications,
 } from '../controllers/bookingController';
 import { requireAdmin } from '../middleware/auth';
 import { bookingRateLimiter } from '../middleware/rateLimit';
@@ -18,5 +20,7 @@ router.post('/bookings', bookingRateLimiter, checkIdempotency, createBooking);
 router.get('/admin/bookings', requireAdmin, getBookings);
 router.get('/admin/bookings/:id', requireAdmin, getBookingById);
 router.patch('/admin/bookings/:id/status', requireAdmin, updateBookingStatus);
+router.post('/admin/bookings/:id/respond', requireAdmin, respondToBooking);
+router.get('/admin/notifications', requireAdmin, getEmailNotifications);
 
 export default router;
