@@ -31,38 +31,41 @@ export async function requireAdmin(req: AuthenticatedRequest, res: Response, nex
       return sendError(res, 'Unauthorized - Invalid or expired token', 401);
     }
 
-    // Lookup profile & business
-    const { rows } = await pool.query(
-      `SELECT id, business_id, full_name, role FROM admin_profiles WHERE id = $1`,
-      [decoded.sub || decoded.id]
-    );
+    // Lookup profile & business in DB
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, business_id, full_name, role FROM admin_profiles WHERE id = $1`,
+        [decoded.sub || decoded.id]
+      );
 
-    if (rows.length === 0) {
-      // Fallback for default seed admin if Supabase GoTrue Auth user id matches decoded sub
-      req.user = {
-        id: decoded.sub || decoded.id || '00000000-0000-0000-0000-000000000002',
-        email: decoded.email || 'admin@bookme.app',
-        role: decoded.role || 'BUSINESS_ADMIN',
-      };
-      req.business = {
-        id: decoded.business_id || '00000000-0000-0000-0000-000000000001',
-      };
-      return next();
+      if (rows.length > 0) {
+        const profile = rows[0];
+        req.user = {
+          id: profile.id,
+          email: decoded.email,
+          role: profile.role,
+        };
+        req.business = {
+          id: profile.business_id,
+        };
+        return next();
+      }
+    } catch (dbErr: any) {
+      console.warn('DB query in requireAdmin failed, falling back to JWT claims:', dbErr?.message);
     }
 
-    const profile = rows[0];
+    // Fallback: use decoded JWT payload
     req.user = {
-      id: profile.id,
-      email: decoded.email,
-      role: profile.role,
+      id: decoded.sub || decoded.id || '00000000-0000-0000-0000-000000000002',
+      email: decoded.email || 'admin@bookme.app',
+      role: decoded.role || 'BUSINESS_ADMIN',
     };
     req.business = {
-      id: profile.business_id,
+      id: decoded.business_id || null,
     };
-
-    next();
+    return next();
   } catch (error: any) {
     console.error('Auth middleware error:', error);
-    return sendError(res, 'Internal Server Error', 500);
+    return sendError(res, error?.message || 'Internal Server Error', 500);
   }
 }
