@@ -2,19 +2,38 @@ import { Request, Response } from 'express';
 import { pool } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
 import { PaystackService, PAYSTACK_PUBLIC_KEY } from '../services/paystackService';
+import { OpayService, OPAY_PUBLIC_KEY } from '../services/opayService';
+import { PalmpayService, PALMPAY_PUBLIC_KEY } from '../services/palmpayService';
 import { IN_MEMORY_BOOKINGS, InMemoryBooking } from './bookingController';
 
 export async function getPaystackConfig(req: Request, res: Response) {
   return sendSuccess(res, {
-    public_key: PAYSTACK_PUBLIC_KEY,
-    gateway: 'paystack',
-    supported_channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-    currency: 'NGN',
+    gateways: [
+      {
+        id: 'paystack',
+        public_key: PAYSTACK_PUBLIC_KEY,
+        supported_channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+        currency: 'NGN',
+      },
+      {
+        id: 'opay',
+        public_key: OPAY_PUBLIC_KEY,
+        supported_channels: ['card', 'opay_wallet', 'bank_transfer'],
+        currency: 'NGN',
+      },
+      {
+        id: 'palmpay',
+        public_key: PALMPAY_PUBLIC_KEY,
+        supported_channels: ['card', 'palmpay_wallet', 'bank_transfer'],
+        currency: 'NGN',
+      }
+    ]
   });
 }
 
 export async function initializePayment(req: Request, res: Response) {
   const {
+    gateway = 'paystack',
     booking_id,
     booking_reference,
     email,
@@ -35,12 +54,18 @@ export async function initializePayment(req: Request, res: Response) {
     return sendError(res, 'A valid positive amount is required', 400);
   }
 
-  const customRef = booking_reference
+  let customRef = booking_reference
     ? `PSK-${booking_reference}-${Date.now().toString(36)}`
     : undefined;
 
+  if (gateway === 'opay' && booking_reference) {
+    customRef = `OPY-${booking_reference}-${Date.now().toString(36)}`;
+  } else if (gateway === 'palmpay' && booking_reference) {
+    customRef = `PLM-${booking_reference}-${Date.now().toString(36)}`;
+  }
+
   try {
-    const result = await PaystackService.initializeTransaction({
+    const initParams = {
       email: email.trim().toLowerCase(),
       amount: numAmount,
       currency: currency || 'NGN',
@@ -53,11 +78,26 @@ export async function initializePayment(req: Request, res: Response) {
         service_name,
         business_name,
       },
-    });
+    };
+
+    let result;
+    let publicKey;
+
+    if (gateway === 'opay') {
+      result = await OpayService.initializeTransaction(initParams);
+      publicKey = OPAY_PUBLIC_KEY;
+    } else if (gateway === 'palmpay') {
+      result = await PalmpayService.initializeTransaction(initParams);
+      publicKey = PALMPAY_PUBLIC_KEY;
+    } else {
+      result = await PaystackService.initializeTransaction(initParams);
+      publicKey = PAYSTACK_PUBLIC_KEY;
+    }
 
     return sendSuccess(res, {
       ...result,
-      public_key: PAYSTACK_PUBLIC_KEY,
+      public_key: publicKey,
+      gateway,
     });
   } catch (err: any) {
     console.error('Error initializing Paystack payment:', err);
@@ -73,7 +113,14 @@ export async function verifyPayment(req: Request, res: Response) {
   }
 
   try {
-    const result = await PaystackService.verifyTransaction(reference);
+    let result;
+    if (reference.startsWith('OPY-')) {
+      result = await OpayService.verifyTransaction(reference);
+    } else if (reference.startsWith('PLM-')) {
+      result = await PalmpayService.verifyTransaction(reference);
+    } else {
+      result = await PaystackService.verifyTransaction(reference);
+    }
 
     if (result.verified) {
       // 1. Update in PostgreSQL

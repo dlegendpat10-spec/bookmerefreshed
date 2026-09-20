@@ -323,25 +323,25 @@ export async function forgotPassword(req: Request, res: Response) {
 
 export async function resetPassword(req: Request, res: Response) {
   const { email, new_password, token } = req.body;
-  if (!email || !new_password) return sendError(res, 'Email and new password are required', 400);
+  if (!email || !new_password || !token) {
+    return sendError(res, 'Email, new password, and reset token are required', 400);
+  }
 
   const cleanEmail = email.toLowerCase().trim();
 
-  if (token) {
-    const record = RESET_TOKENS.get(token);
-    if (!record) {
-      return sendError(res, 'This password reset link is invalid or has already been used.', 400);
-    }
-    if (Date.now() > record.expiresAt) {
-      RESET_TOKENS.delete(token);
-      return sendError(res, 'This password reset link has expired. Please request a new one.', 400);
-    }
-    if (record.email !== cleanEmail) {
-      return sendError(res, 'Token mismatch for this email address.', 400);
-    }
-    // Token is valid; invalidate it now
-    RESET_TOKENS.delete(token);
+  const record = RESET_TOKENS.get(token);
+  if (!record) {
+    return sendError(res, 'This password reset link is invalid or has already been used.', 400);
   }
+  if (Date.now() > record.expiresAt) {
+    RESET_TOKENS.delete(token);
+    return sendError(res, 'This password reset link has expired. Please request a new one.', 400);
+  }
+  if (record.email !== cleanEmail) {
+    return sendError(res, 'Token mismatch for this email address.', 400);
+  }
+  // Token is valid; invalidate it now
+  RESET_TOKENS.delete(token);
 
   const newHash = hashPassword(new_password);
 
