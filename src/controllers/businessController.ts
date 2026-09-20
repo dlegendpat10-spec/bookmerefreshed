@@ -5,18 +5,24 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { sendSuccess, sendError } from '../utils/response';
 
 export async function createBusiness(req: AuthenticatedRequest, res: Response) {
-  const { name, category, template, country, address, description, phone } = req.body;
+  const { name, category, template, country, address, description, phone } = req.body || {};
   const userId = req.user?.id;
 
   if (!userId) {
-    return sendError(res, 'Unauthorized', 401);
+    return sendError(res, 'Unauthorized - Invalid session', 401);
   }
 
-  if (!name || !name.trim()) {
-    return sendError(res, 'Business name is required', 400);
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return sendError(res, 'Business name is required and must be a valid string', 400);
   }
 
-  const client = await pool.connect();
+  let client;
+  try {
+    client = await pool.connect();
+  } catch (connErr: any) {
+    console.error('Database connection error in createBusiness:', connErr);
+    return sendError(res, 'Database connection error. Please check server database credentials.', 500);
+  }
 
   try {
     await client.query('BEGIN');
@@ -57,10 +63,17 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
 
     const newBusiness = businessResult.rows[0];
 
-    // 2. Link business to admin profile
+    // 2. Link business to admin profile (upsert so orphaned in-memory user gets persisted)
     await client.query(
-      `UPDATE admin_profiles SET business_id = $1 WHERE id = $2`,
-      [businessId, userId]
+      `INSERT INTO admin_profiles (id, business_id, full_name, email, role)
+       VALUES ($1, $2, $3, $4, 'BUSINESS_ADMIN')
+       ON CONFLICT (id) DO UPDATE SET business_id = $2`,
+      [
+        userId,
+        businessId,
+        req.user?.email?.split('@')[0] || 'Business Admin',
+        req.user?.email || 'admin@bookme.app'
+      ]
     );
 
     // 3. Initialize default business hours (Monday-Friday 9-5, Sat 10-2, Sun Closed)
@@ -93,11 +106,19 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
       template: template || 'Custom',
     }, 201);
   } catch (error: any) {
-    await client.query('ROLLBACK');
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rbErr) {
+        console.error('Rollback error:', rbErr);
+      }
+    }
     console.error('Create business error:', error);
-    return sendError(res, 'Internal Server Error while creating business', 500);
+    return sendError(res, error?.message || 'Error while creating business', 500);
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 }
 

@@ -73,5 +73,12 @@ export async function initDbSchema() {
     // Ignore if already exists
   }
 
+  try {
+    // 3. Drop blocking foreign key to auth.users if present so custom auth registration can persist
+    await pool.query(`ALTER TABLE admin_profiles DROP CONSTRAINT IF EXISTS admin_profiles_auth_users_fkey;`);
+  } catch (e: any) {
+    // Ignore
+  }
+
   console.log('✅ PostgreSQL Schema Auto-Migration verified.');
 }
