@@ -10,6 +10,7 @@ import bookingRoutes from './routes/bookings';
 import slotRoutes from './routes/slots';
 import availabilityRoutes from './routes/availability';
 import dashboardRoutes from './routes/dashboard';
+import { paymentRouter } from './routes/paymentRoutes';
 import { sendSuccess, sendError } from './utils/response';
 import { initDbSchema } from './db/pool';
 
@@ -85,6 +86,7 @@ app.use(API_PREFIX, bookingRoutes);
 app.use(API_PREFIX, slotRoutes);
 app.use(API_PREFIX, availabilityRoutes);
 app.use(API_PREFIX, dashboardRoutes);
+app.use(API_PREFIX + '/payments', paymentRouter);
 
 // 404 Route Handler
 app.use((req: Request, res: Response) => {
@@ -98,7 +100,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 Bookme REST API Server running on port ${PORT}`);
+  console.log(`🚀 Bookmi REST API Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`API Base URL: http://localhost:${PORT}${API_PREFIX}`);
   await initDbSchema();

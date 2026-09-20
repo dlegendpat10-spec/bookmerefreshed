@@ -51,7 +51,7 @@ export interface InMemoryBooking {
   };
 }
 
-const IN_MEMORY_BOOKINGS: InMemoryBooking[] = [];
+export const IN_MEMORY_BOOKINGS: InMemoryBooking[] = [];
 
 
 export function getInMemoryBookings(businessId?: string): InMemoryBooking[] {
@@ -313,8 +313,8 @@ export async function createBooking(req: Request, res: Response) {
         sendBookingCreatedEmails({
           bookingReference: booking_reference,
           businessId: targetBusinessId,
-          businessName: biz?.name || 'BookMe Business',
-          businessEmail: biz?.email || 'admin@bookme.local',
+          businessName: biz?.name || 'Bookmi Business',
+          businessEmail: biz?.email || 'admin@bookmi.local',
           businessAddress: biz?.address,
           customerName: customer_name || 'Valued Client',
           customerEmail: customer_email || 'client@example.com',
@@ -351,8 +351,8 @@ export async function createBooking(req: Request, res: Response) {
   sendBookingCreatedEmails({
     bookingReference: booking_reference,
     businessId: targetBusinessId,
-    businessName: biz?.name || 'BookMe Business',
-    businessEmail: biz?.email || 'admin@bookme.local',
+    businessName: biz?.name || 'Bookmi Business',
+    businessEmail: biz?.email || 'admin@bookmi.local',
     businessAddress: biz?.address,
     customerName: customer_name || 'Valued Client',
     customerEmail: customer_email || 'client@example.com',
@@ -412,8 +412,8 @@ export async function updateBookingStatus(req: AuthenticatedRequest, res: Respon
     sendBookingStatusChangedEmails({
       bookingReference: updatedRecord.booking_reference || memFound?.booking_reference || id,
       businessId,
-      businessName: biz?.name || 'BookMe Business',
-      businessEmail: biz?.email || 'admin@bookme.local',
+      businessName: biz?.name || 'Bookmi Business',
+      businessEmail: biz?.email || 'admin@bookmi.local',
       customerName: memFound?.customer?.first_name || 'Valued Client',
       customerEmail: memFound?.customer?.email || 'client@example.com',
       serviceName: memFound?.service?.name || 'Service Appointment',
@@ -448,8 +448,8 @@ export async function respondToBooking(req: AuthenticatedRequest, res: Response)
   const result = await sendCustomResponseEmail({
     bookingReference: memTarget.booking_reference,
     businessId,
-    businessName: biz?.name || 'BookMe Business',
-    businessEmail: biz?.email || 'admin@bookme.local',
+    businessName: biz?.name || 'Bookmi Business',
+    businessEmail: biz?.email || 'admin@bookmi.local',
     customerName: memTarget.customer?.first_name || 'Valued Client',
     customerEmail: memTarget.customer?.email || 'client@example.com',
     message: message.trim(),

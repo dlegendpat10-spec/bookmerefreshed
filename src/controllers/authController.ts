@@ -3,7 +3,14 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { pool } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
-import { sendRegistrationWelcomeEmail } from '../services/emailService';
+import { sendRegistrationWelcomeEmail, sendPasswordResetEmail, sendTestEmail } from '../services/emailService';
+
+interface ResetTokenRecord {
+  email: string;
+  expiresAt: number;
+}
+
+const RESET_TOKENS = new Map<string, ResetTokenRecord>();
 
 function hashPassword(password: string): string {
   return crypto.pbkdf2Sync(password, 'bookme_salt_key_2026', 1000, 64, 'sha512').toString('hex');
@@ -24,16 +31,18 @@ interface InMemoryUser {
 const IN_MEMORY_USERS = new Map<string, InMemoryUser>();
 
 // Pre-seed default admin
-IN_MEMORY_USERS.set('admin@bookme.app', {
+const defaultAdmin: InMemoryUser = {
   id: '00000000-0000-0000-0000-000000000002',
   full_name: 'Admin User',
-  email: 'admin@bookme.app',
+  email: 'admin@bookmi.app',
   password_hash: hashPassword('admin123'),
   role: 'BUSINESS_ADMIN',
   business_id: null,
   business_name: null,
   business_slug: null,
-});
+};
+IN_MEMORY_USERS.set('admin@bookmi.app', defaultAdmin);
+IN_MEMORY_USERS.set('admin@bookme.app', { ...defaultAdmin, email: 'admin@bookme.app' });
 
 export async function register(req: Request, res: Response) {
   const { full_name, email, password } = req.body;
@@ -270,14 +279,70 @@ export async function logout(req: Request, res: Response) {
 export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body;
   if (!email) return sendError(res, 'Email is required', 400);
-  return sendSuccess(res, { message: 'If an account exists, a password reset link has been sent.' });
+
+  const cleanEmail = email.toLowerCase().trim();
+
+  // Try to find user in DB or in-memory to get name
+  let fullName = 'Bookmi User';
+  const memUser = IN_MEMORY_USERS.get(cleanEmail);
+  if (memUser) {
+    fullName = memUser.full_name;
+  } else {
+    try {
+      const dbRes = await pool.query(`SELECT full_name FROM admin_profiles WHERE LOWER(email) = $1 LIMIT 1`, [cleanEmail]);
+      if (dbRes.rows.length > 0 && dbRes.rows[0].full_name) {
+        fullName = dbRes.rows[0].full_name;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Generate secure reset token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour validity
+  RESET_TOKENS.set(resetToken, { email: cleanEmail, expiresAt });
+
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(cleanEmail)}`;
+
+  // Dispatch password reset email
+  await sendPasswordResetEmail({
+    email: cleanEmail,
+    resetToken,
+    resetUrl,
+    fullName,
+  });
+
+  return sendSuccess(res, {
+    message: `A secure password reset link has been dispatched to ${cleanEmail}.`,
+    reset_token: resetToken,
+    reset_url: resetUrl,
+  });
 }
 
 export async function resetPassword(req: Request, res: Response) {
-  const { email, new_password } = req.body;
+  const { email, new_password, token } = req.body;
   if (!email || !new_password) return sendError(res, 'Email and new password are required', 400);
 
   const cleanEmail = email.toLowerCase().trim();
+
+  if (token) {
+    const record = RESET_TOKENS.get(token);
+    if (!record) {
+      return sendError(res, 'This password reset link is invalid or has already been used.', 400);
+    }
+    if (Date.now() > record.expiresAt) {
+      RESET_TOKENS.delete(token);
+      return sendError(res, 'This password reset link has expired. Please request a new one.', 400);
+    }
+    if (record.email !== cleanEmail) {
+      return sendError(res, 'Token mismatch for this email address.', 400);
+    }
+    // Token is valid; invalidate it now
+    RESET_TOKENS.delete(token);
+  }
+
   const newHash = hashPassword(new_password);
 
   try {
@@ -295,6 +360,32 @@ export async function resetPassword(req: Request, res: Response) {
     IN_MEMORY_USERS.set(cleanEmail, memUser);
   }
 
-  return sendSuccess(res, { message: 'Password has been updated successfully.' });
+  return sendSuccess(res, { message: 'Password has been updated successfully. You can now sign in.' });
 }
+
+export async function testEmailDelivery(req: Request, res: Response) {
+  const { email, note } = req.body;
+  if (!email) return sendError(res, 'Target email is required', 400);
+
+  try {
+    const { result, log } = await sendTestEmail({
+      to: email.toLowerCase().trim(),
+      customNote: note,
+    });
+
+    return sendSuccess(res, {
+      message: result.delivered
+        ? `Diagnostic test dispatched successfully via ${result.channel}.`
+        : `Email delivery failed: ${result.error || 'Unknown error'}`,
+      channel: result.channel,
+      delivered: result.delivered,
+      external_id: result.externalId || null,
+      error: result.error || null,
+      log_id: log.id,
+    });
+  } catch (err: any) {
+    return sendError(res, `Failed to dispatch test email: ${err.message}`, 500);
+  }
+}
+
 

@@ -57,7 +57,7 @@ export async function requireAdmin(req: AuthenticatedRequest, res: Response, nex
     // Fallback: use decoded JWT payload
     req.user = {
       id: decoded.sub || decoded.id || '00000000-0000-0000-0000-000000000002',
-      email: decoded.email || 'admin@bookme.app',
+      email: decoded.email || 'admin@bookmi.app',
       role: decoded.role || 'BUSINESS_ADMIN',
     };
     req.business = {

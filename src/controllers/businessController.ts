@@ -269,7 +269,7 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
           userId,
           businessId,
           req.user?.email?.split('@')[0] || 'Business Admin',
-          req.user?.email || 'admin@bookme.app'
+          req.user?.email || 'admin@bookmi.app'
         ]
       );
 
