@@ -16,18 +16,21 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
     return sendError(res, 'Business name is required', 400);
   }
 
+  const client = await pool.connect();
+
   try {
+    await client.query('BEGIN');
+
     const businessId = crypto.randomUUID();
     const cleanName = name.trim();
     let baseSlug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     if (!baseSlug) baseSlug = 'business-' + Math.floor(Math.random() * 1000);
 
     const slug = baseSlug + '-' + Math.floor(Math.random() * 1000);
-
     const initials = cleanName.split(' ').map((w: string) => w[0]).join('').substring(0, 4).toUpperCase() || 'BM';
 
     // 1. Create Business
-    const businessResult = await pool.query(
+    const businessResult = await client.query(
       `INSERT INTO businesses (
         id, name, short_name, slug, tagline, description, initials,
         accent_color, currency, currency_symbol, locale, timezone, time_format,
@@ -55,7 +58,7 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
     const newBusiness = businessResult.rows[0];
 
     // 2. Link business to admin profile
-    await pool.query(
+    await client.query(
       `UPDATE admin_profiles SET business_id = $1 WHERE id = $2`,
       [businessId, userId]
     );
@@ -72,7 +75,7 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
     ];
 
     for (const h of hours) {
-      await pool.query(
+      await client.query(
         `INSERT INTO business_hours (business_id, day_of_week, day_name, opening_time, closing_time, is_open)
          VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (business_id, day_of_week) DO UPDATE SET
@@ -83,13 +86,18 @@ export async function createBusiness(req: AuthenticatedRequest, res: Response) {
       );
     }
 
+    await client.query('COMMIT');
+
     return sendSuccess(res, {
       ...newBusiness,
       template: template || 'Custom',
     }, 201);
   } catch (error: any) {
+    await client.query('ROLLBACK');
     console.error('Create business error:', error);
     return sendError(res, 'Internal Server Error while creating business', 500);
+  } finally {
+    client.release();
   }
 }
 

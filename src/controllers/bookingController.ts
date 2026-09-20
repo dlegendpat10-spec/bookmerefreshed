@@ -143,9 +143,14 @@ export async function createBooking(req: Request, res: Response) {
     const totalMinutes = service.duration_minutes + (service.buffer_minutes || 0);
     const end_time = addMinutesToTime(start_time, totalMinutes);
 
-    // Compute absolute TIMESTAMPTZ values for PostgreSQL GIST exclusion constraint
-    const starts_at = new Date(`${booking_date}T${start_time}:00`).toISOString();
-    const ends_at = new Date(`${booking_date}T${end_time}:00`).toISOString();
+    // Helper to safely convert booking_date and start/end time into ISO string
+    const formatIso = (dateStr: string, timeStr: string) => {
+      const cleanTime = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
+      return new Date(`${dateStr}T${cleanTime}Z`).toISOString();
+    };
+
+    const starts_at = formatIso(booking_date, start_time);
+    const ends_at = formatIso(booking_date, end_time);
 
     const booking_reference = generateBookingReference();
 
