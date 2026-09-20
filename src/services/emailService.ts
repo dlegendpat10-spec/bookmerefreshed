@@ -86,7 +86,11 @@ export async function dispatchOutboundEmail(options: {
   // 1. Try Resend API first if key is present
   if (resendApiKey && resendApiKey.trim().length > 5) {
     try {
-      console.log(`[EmailService] Attempting delivery via Resend API to: ${options.to}`);
+      const finalTo = process.env.DEV_OVERRIDE_EMAIL || options.to;
+      const devNoteHtml = process.env.DEV_OVERRIDE_EMAIL ? `<div style="background: #fbbf24; color: #000; padding: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; border-radius: 4px;">TESTING MODE: Original recipient was ${options.to}</div>` : '';
+      const devNoteText = process.env.DEV_OVERRIDE_EMAIL ? `\n\n[TESTING MODE: Original recipient was ${options.to}]\n\n` : '';
+
+      console.log(`[EmailService] Attempting delivery via Resend API to: ${finalTo} (Original: ${options.to})`);
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -95,10 +99,10 @@ export async function dispatchOutboundEmail(options: {
         },
         body: JSON.stringify({
           from: process.env.RESEND_FROM || fromAddress,
-          to: [options.to],
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
+          to: [finalTo],
+          subject: process.env.DEV_OVERRIDE_EMAIL ? `[TEST] ${options.subject}` : options.subject,
+          html: devNoteHtml + options.html,
+          text: devNoteText + options.text,
         }),
       });
 
