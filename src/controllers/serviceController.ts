@@ -5,7 +5,7 @@ import { sendSuccess, sendError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { findBusinessBySlug, IN_MEMORY_BUSINESSES } from './businessController';
 
-const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000003'; // Default to Luxe Grooming
+const DEFAULT_BUSINESS_ID = '';
 
 export interface InMemoryService {
   id: string;
@@ -21,60 +21,8 @@ export interface InMemoryService {
   category: string;
 }
 
-const IN_MEMORY_SERVICES: InMemoryService[] = [
-  {
-    id: '11111111-0000-0000-0000-000000000011',
-    business_id: '00000000-0000-0000-0000-000000000003',
-    name: 'Executive Haircut & Beard Sculpting',
-    description: 'Precision haircut tailored to head shape with hot towel treatment, straight-razor detailing, and beard nourishment.',
-    duration_minutes: 45,
-    buffer_minutes: 10,
-    price: 15000,
-    currency: 'NGN',
-    is_active: true,
-    icon: '✂️',
-    category: 'Grooming',
-  },
-  {
-    id: '11111111-0000-0000-0000-000000000012',
-    business_id: '00000000-0000-0000-0000-000000000003',
-    name: 'Royal Spa Treatment',
-    description: 'Complete deep cleansing facial, exfoliating scrub, scalp massage, and therapeutic grooming ritual.',
-    duration_minutes: 60,
-    buffer_minutes: 15,
-    price: 25000,
-    currency: 'NGN',
-    is_active: true,
-    icon: '👑',
-    category: 'Spa',
-  },
-  {
-    id: '11111111-0000-0000-0000-000000000013',
-    business_id: '00000000-0000-0000-0000-000000000003',
-    name: 'Classic Beard Trim & Oil Treatment',
-    description: 'Beard line-up with electric shaver and premium essential oils conditioning.',
-    duration_minutes: 30,
-    buffer_minutes: 5,
-    price: 8000,
-    currency: 'NGN',
-    is_active: true,
-    icon: '💈',
-    category: 'Beard',
-  },
-  {
-    id: '11111111-0000-0000-0000-000000000001',
-    business_id: '00000000-0000-0000-0000-000000000001',
-    name: 'Discovery Call',
-    description: 'A free 30-minute introductory session to understand your educational needs and goals.',
-    duration_minutes: 30,
-    buffer_minutes: 0,
-    price: 0,
-    currency: 'NGN',
-    is_active: true,
-    icon: '🎯',
-    category: 'Consultation',
-  },
-];
+const IN_MEMORY_SERVICES: InMemoryService[] = [];
+
 
 export async function getServices(req: Request, res: Response) {
   const includeInactive = req.query.includeInactive === 'true';
@@ -100,27 +48,63 @@ export async function getServices(req: Request, res: Response) {
     }
   }
 
-  const resolvedBusinessId = businessId || DEFAULT_BUSINESS_ID;
-
   try {
-    const query = includeInactive
-      ? `SELECT * FROM services WHERE business_id = $1 ORDER BY created_at DESC`
-      : `SELECT * FROM services WHERE business_id = $1 AND is_active = TRUE ORDER BY price ASC, name ASC`;
+    if (businessId) {
+      // 1. Business-isolated query: Only services offered by this specific business
+      const query = includeInactive
+        ? `SELECT s.*, b.name AS business_name, b.slug AS business_slug, b.address AS business_address
+           FROM services s
+           LEFT JOIN businesses b ON s.business_id = b.id
+           WHERE s.business_id = $1
+           ORDER BY s.created_at DESC`
+        : `SELECT s.*, b.name AS business_name, b.slug AS business_slug, b.address AS business_address
+           FROM services s
+           LEFT JOIN businesses b ON s.business_id = b.id
+           WHERE s.business_id = $1 AND s.is_active = TRUE
+           ORDER BY s.price ASC, s.name ASC`;
 
-    const { rows } = await safeQuery(query, [resolvedBusinessId]);
-    if (rows && rows.length > 0) {
-      return sendSuccess(res, rows);
+      const { rows } = await safeQuery(query, [businessId]);
+      if (rows) {
+        return sendSuccess(res, rows);
+      }
+    } else {
+      // 2. Platform-wide query: All active services available on the platform
+      const query = includeInactive
+        ? `SELECT s.*, b.name AS business_name, b.slug AS business_slug, b.address AS business_address
+           FROM services s
+           LEFT JOIN businesses b ON s.business_id = b.id
+           ORDER BY s.created_at DESC`
+        : `SELECT s.*, b.name AS business_name, b.slug AS business_slug, b.address AS business_address
+           FROM services s
+           LEFT JOIN businesses b ON s.business_id = b.id
+           WHERE s.is_active = TRUE
+           ORDER BY s.created_at DESC`;
+
+      const { rows } = await safeQuery(query);
+      if (rows) {
+        return sendSuccess(res, rows);
+      }
     }
   } catch (error: any) {
     console.warn('DB getServices warning, using memory store fallback:', error.message);
   }
 
   // Memory fallback
-  const filtered = IN_MEMORY_SERVICES.filter(s =>
-    s.business_id === resolvedBusinessId && (includeInactive || s.is_active)
-  );
+  const filtered = businessId
+    ? IN_MEMORY_SERVICES.filter(s => s.business_id === businessId && (includeInactive || s.is_active))
+    : IN_MEMORY_SERVICES.filter(s => includeInactive || s.is_active);
 
-  return sendSuccess(res, filtered);
+  const mapped = filtered.map(s => {
+    const biz = IN_MEMORY_BUSINESSES.get(s.business_id);
+    return {
+      ...s,
+      business_name: biz?.name || 'Verified Provider',
+      business_slug: biz?.slug || 'provider',
+      business_address: biz?.address || 'Lagos, Nigeria',
+    };
+  });
+
+  return sendSuccess(res, mapped);
 }
 
 export async function getServiceById(req: Request, res: Response) {

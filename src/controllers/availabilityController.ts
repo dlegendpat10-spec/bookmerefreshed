@@ -3,7 +3,7 @@ import { pool } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000001';
+const DEFAULT_BUSINESS_ID = '';
 
 export async function getBusinessHours(req: Request, res: Response) {
   const businessId = (req.query.businessId as string) || DEFAULT_BUSINESS_ID;

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { safeQuery } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
 
-const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000003';
+const DEFAULT_BUSINESS_ID = '';
 
 export async function getAvailableSlots(req: Request, res: Response) {
   const { serviceId, date, businessId } = req.query;

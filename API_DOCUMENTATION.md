@@ -104,7 +104,7 @@ Authenticates admin user and returns access token.
     "data": {
       "id": "00000000-0000-0000-0000-000000000002",
       "email": "admin@bookme.app",
-      "full_name": "Deji Ayomide",
+      "full_name": "Admin User",
       "role": "BUSINESS_ADMIN",
       "access_token": "eyJhbGciOiJIUzI1NiIsIn..."
     },

@@ -30,45 +30,6 @@ export interface InMemoryBusiness {
 
 export const IN_MEMORY_BUSINESSES = new Map<string, InMemoryBusiness>();
 
-// Pre-seed default businesses in memory
-IN_MEMORY_BUSINESSES.set('00000000-0000-0000-0000-000000000001', {
-  id: '00000000-0000-0000-0000-000000000001',
-  name: 'Pyaladea Academic Consult',
-  short_name: 'Pyaladea',
-  slug: 'pyaladea',
-  tagline: 'Empowering Academic Excellence & Personalised Growth',
-  description: 'Premium academic consulting, admissions strategy, and subject-matter tutoring.',
-  initials: 'PC',
-  accent_color: '#7C3AED',
-  currency: 'NGN',
-  currency_symbol: '₦',
-  locale: 'en-NG',
-  timezone: 'Africa/Lagos',
-  time_format: '12h',
-  phone: '+234 812 345 6789',
-  email: 'hello@pyaladea.com',
-  address: '14 Victoria Island Way, Suite 3B, Lagos, Nigeria',
-});
-
-IN_MEMORY_BUSINESSES.set('00000000-0000-0000-0000-000000000003', {
-  id: '00000000-0000-0000-0000-000000000003',
-  name: 'Luxe Grooming Lounge',
-  short_name: 'Luxe Grooming',
-  slug: 'luxe-grooming',
-  tagline: 'Precision Barbering & Executive Grooming',
-  description: 'Lagos premier grooming lounge for distinguished gentlemen.',
-  initials: 'LG',
-  accent_color: '#10B981',
-  currency: 'NGN',
-  currency_symbol: '₦',
-  locale: 'en-NG',
-  timezone: 'Africa/Lagos',
-  time_format: '12h',
-  phone: '+234 809 123 4567',
-  email: 'info@luxegrooming.com',
-  address: '12 Adeola Odeku, Victoria Island, Lagos',
-});
-
 function sanitizeSlug(rawSlug: string): string {
   return rawSlug
     .toLowerCase()
@@ -312,7 +273,7 @@ export async function updateMyBusiness(req: AuthenticatedRequest, res: Response)
   }
 
   // 2. Update memory store
-  const targetId = businessId || '00000000-0000-0000-0000-000000000003';
+  const targetId = businessId || (IN_MEMORY_BUSINESSES.keys().next().value || crypto.randomUUID());
   const existing = IN_MEMORY_BUSINESSES.get(targetId) || {
     id: targetId,
     name: name || 'Business',

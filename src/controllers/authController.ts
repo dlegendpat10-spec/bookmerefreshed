@@ -25,13 +25,13 @@ const IN_MEMORY_USERS = new Map<string, InMemoryUser>();
 // Pre-seed default admin
 IN_MEMORY_USERS.set('admin@bookme.app', {
   id: '00000000-0000-0000-0000-000000000002',
-  full_name: 'Deji Ayomide',
+  full_name: 'Admin User',
   email: 'admin@bookme.app',
   password_hash: hashPassword('admin123'),
   role: 'BUSINESS_ADMIN',
-  business_id: '00000000-0000-0000-0000-000000000001',
-  business_name: 'Bookme Appointments',
-  business_slug: 'luxe-grooming',
+  business_id: null,
+  business_name: null,
+  business_slug: null,
 });
 
 export async function register(req: Request, res: Response) {

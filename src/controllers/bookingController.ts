@@ -14,7 +14,7 @@ import {
 } from '../services/emailService';
 import { IN_MEMORY_BUSINESSES } from './businessController';
 
-const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000003';
+const DEFAULT_BUSINESS_ID = '';
 
 function getBusinessFromMemory(businessId: string): any {
   return IN_MEMORY_BUSINESSES.get(businessId) || Array.from(IN_MEMORY_BUSINESSES.values())[0];
@@ -51,38 +51,8 @@ export interface InMemoryBooking {
   };
 }
 
-const IN_MEMORY_BOOKINGS: InMemoryBooking[] = [
-  {
-    id: '00000000-0000-0000-0000-000000000091',
-    booking_reference: 'BKM-8K2L',
-    business_id: '00000000-0000-0000-0000-000000000003',
-    service_id: '11111111-0000-0000-0000-000000000011',
-    customer_id: '22222222-0000-0000-0000-000000000001',
-    booking_date: new Date().toISOString().split('T')[0],
-    start_time: '10:00',
-    end_time: '10:45',
-    starts_at: new Date().toISOString(),
-    ends_at: new Date(Date.now() + 45 * 60000).toISOString(),
-    status: 'CONFIRMED',
-    payment_status: 'PAID',
-    amount: 15000,
-    currency: 'NGN',
-    customer_notes: 'Regular appointment',
-    customer: {
-      id: '22222222-0000-0000-0000-000000000001',
-      first_name: 'Amara',
-      last_name: 'Okonkwo',
-      email: 'amara.o@gmail.com',
-      phone: '+234 813 456 7890',
-    },
-    service: {
-      id: '11111111-0000-0000-0000-000000000011',
-      name: 'Executive Haircut & Beard Sculpting',
-      duration_minutes: 45,
-      price: 15000,
-    }
-  },
-];
+const IN_MEMORY_BOOKINGS: InMemoryBooking[] = [];
+
 
 export function getInMemoryBookings(businessId?: string): InMemoryBooking[] {
   if (businessId) {

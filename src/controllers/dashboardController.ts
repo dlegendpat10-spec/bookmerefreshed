@@ -4,7 +4,7 @@ import { sendSuccess, sendError } from '../utils/response';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { getInMemoryBookings } from './bookingController';
 
-const DEFAULT_BUSINESS_ID = '00000000-0000-0000-0000-000000000003';
+const DEFAULT_BUSINESS_ID = '';
 
 export async function getDashboardStats(req: AuthenticatedRequest, res: Response) {
   const businessId = req.business?.id || DEFAULT_BUSINESS_ID;
