@@ -21,7 +21,279 @@ export interface InMemoryService {
   category: string;
 }
 
-const IN_MEMORY_SERVICES: InMemoryService[] = [];
+const IN_MEMORY_SERVICES: InMemoryService[] = [
+  // ── Apex Strategy & Advisory (biz-001) ──
+  {
+    id: 'svc-001',
+    business_id: 'biz-001',
+    name: 'Executive 1-on-1 Business Strategy Session',
+    category: 'Consulting & Strategy',
+    description: 'Deep-dive session to evaluate revenue models, capital allocation, and market expansion tactics for C-suite leaders.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 45000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Briefcase'
+  },
+  {
+    id: 'svc-002',
+    business_id: 'biz-001',
+    name: 'Commercial Contract & Legal Risk Review',
+    category: 'Legal & Compliance',
+    description: 'In-depth legal audit of vendor, partnership, and employment agreements with actionable risk mitigation suggestions.',
+    duration_minutes: 90,
+    buffer_minutes: 15,
+    price: 75000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'FileText'
+  },
+  {
+    id: 'svc-003',
+    business_id: 'biz-001',
+    name: 'Startup Pitch Deck & Fundraising Masterclass',
+    category: 'Consulting & Strategy',
+    description: 'Comprehensive narrative polishing, financial model stress-testing, and Q&A roleplay before meeting Tier-1 VC investors.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 50000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'TrendingUp'
+  },
+  {
+    id: 'svc-004',
+    business_id: 'biz-001',
+    name: 'Commercial Due Diligence & M&A Consultation',
+    category: 'Legal & Compliance',
+    description: 'Rigorous analysis of target balance sheets, asset ownership, pending liabilities, and regulatory compliance.',
+    duration_minutes: 120,
+    buffer_minutes: 30,
+    price: 120000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'ShieldCheck'
+  },
+
+  // ── Serenity Wellness & Spa Sanctuary (biz-002) ──
+  {
+    id: 'svc-005',
+    business_id: 'biz-002',
+    name: 'Deep Tissue & Volcanic Hot Stone Massage',
+    category: 'Wellness & Spa',
+    description: 'Targeted muscle recovery therapy utilizing heated basalt volcanic stones and organic essential oils to eliminate chronic tension.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 28000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Sparkles'
+  },
+  {
+    id: 'svc-006',
+    business_id: 'biz-002',
+    name: 'Organic Botanical Glow & Hydration Facial',
+    category: 'Wellness & Spa',
+    description: 'Gentle exfoliating fruit-enzyme peel followed by pure botanical serums and lymphatic facial sculpting for an instant radiance.',
+    duration_minutes: 45,
+    buffer_minutes: 10,
+    price: 22000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Smile'
+  },
+  {
+    id: 'svc-007',
+    business_id: 'biz-002',
+    name: 'Holistic Aromatherapy & Full-Body Detox Soak',
+    category: 'Wellness & Spa',
+    description: 'Immersion in mineral-rich Dead Sea salts infused with eucalyptus and lavender, paired with gentle acupressure bodywork.',
+    duration_minutes: 90,
+    buffer_minutes: 15,
+    price: 40000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Feather'
+  },
+  {
+    id: 'svc-008',
+    business_id: 'biz-002',
+    name: 'Traditional Thai Herbal Compress Therapy',
+    category: 'Wellness & Spa',
+    description: 'Ancient healing ritual using warm steamed herbal poultices packed with lemongrass, turmeric, and ginger to boost circulation.',
+    duration_minutes: 75,
+    buffer_minutes: 15,
+    price: 32000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Heart'
+  },
+
+  // ── Pulse High-Performance Athletic Lab (biz-003) ──
+  {
+    id: 'svc-009',
+    business_id: 'biz-003',
+    name: 'Personalized Athletic Strength & Conditioning',
+    category: 'Fitness & Training',
+    description: '1-on-1 progressive resistance training, core stabilization, and neuromuscular speed development tailored to your performance goals.',
+    duration_minutes: 60,
+    buffer_minutes: 10,
+    price: 18000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Activity'
+  },
+  {
+    id: 'svc-010',
+    business_id: 'biz-003',
+    name: 'Metabolic Rate & VO2 Max Bio-Assessment',
+    category: 'Fitness & Training',
+    description: 'Lab-grade cardiopulmonary metabolic cart testing to calculate exact caloric expenditure zones and aerobic endurance capacity.',
+    duration_minutes: 45,
+    buffer_minutes: 15,
+    price: 25000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Zap'
+  },
+  {
+    id: 'svc-011',
+    business_id: 'biz-003',
+    name: 'Sports Injury Rehabilitation & Mobility Therapy',
+    category: 'Fitness & Training',
+    description: 'Targeted physical therapy addressing joint impingement, soft-tissue strains, and gait imbalances for safe return to competition.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 30000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Award'
+  },
+
+  // ── Lumina Creative Studio & Visual Lab (biz-004) ──
+  {
+    id: 'svc-012',
+    business_id: 'biz-004',
+    name: 'Executive Portrait & Studio Headshot Session',
+    category: 'Creative & Design',
+    description: 'Professional multi-light studio photography session for LinkedIn profiles, corporate directories, and conference keynotes.',
+    duration_minutes: 45,
+    buffer_minutes: 15,
+    price: 35000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Camera'
+  },
+  {
+    id: 'svc-013',
+    business_id: 'biz-004',
+    name: 'Brand Identity & Visual Sprint Workshop',
+    category: 'Creative & Design',
+    description: 'Intensive collaborative design sprint delivering brand guidelines, typographic hierarchy, color systems, and logo assets.',
+    duration_minutes: 90,
+    buffer_minutes: 20,
+    price: 65000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Layers'
+  },
+  {
+    id: 'svc-014',
+    business_id: 'biz-004',
+    name: 'Commercial Product & Lifestyle Videography',
+    category: 'Creative & Design',
+    description: 'High-definition 4K commercial capture with cinematic lighting and custom sound design for e-commerce and social ad campaigns.',
+    duration_minutes: 120,
+    buffer_minutes: 30,
+    price: 95000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Video'
+  },
+
+  // ── Quantum Cloud & Cyber Systems (biz-005) ──
+  {
+    id: 'svc-015',
+    business_id: 'biz-005',
+    name: 'Cloud Architecture & Infrastructure Audit',
+    category: 'Tech & Development',
+    description: 'Comprehensive evaluation of AWS/GCP/Azure cost efficiency, auto-scaling resilience, and microservice topology.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 55000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Cloud'
+  },
+  {
+    id: 'svc-016',
+    business_id: 'biz-005',
+    name: 'Enterprise Cybersecurity Vulnerability Assessment',
+    category: 'Tech & Development',
+    description: 'Simulated penetration testing, API endpoint fuzzing, and compliance verification under ISO 27001 / NDPR standards.',
+    duration_minutes: 90,
+    buffer_minutes: 20,
+    price: 85000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Lock'
+  },
+  {
+    id: 'svc-017',
+    business_id: 'biz-005',
+    name: 'Generative AI & LLM Solution Blueprinting',
+    category: 'Tech & Development',
+    description: 'Architecture review for deploying enterprise RAG pipelines, fine-tuning local models, and evaluating latency vs accuracy trade-offs.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 65000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Cpu'
+  },
+
+  // ── BrightSmiles Aesthetic Dental Clinic (biz-006) ──
+  {
+    id: 'svc-018',
+    business_id: 'biz-006',
+    name: 'Professional Laser Teeth Whitening & Enamel Care',
+    category: 'Healthcare & Dental',
+    description: 'Non-invasive LED laser whitening treatment lightening smile shade up to 8 levels without tooth sensitivity.',
+    duration_minutes: 45,
+    buffer_minutes: 15,
+    price: 38000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Sun'
+  },
+  {
+    id: 'svc-019',
+    business_id: 'biz-006',
+    name: 'Comprehensive Dental Checkup & Ultrasonic Scaling',
+    category: 'Healthcare & Dental',
+    description: 'Preventive oral health screening, digital intraoral photography, ultrasonic plaque removal, and fluoride polish.',
+    duration_minutes: 60,
+    buffer_minutes: 15,
+    price: 22000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'CheckCircle'
+  },
+  {
+    id: 'svc-020',
+    business_id: 'biz-006',
+    name: 'Orthodontic & Clear Aligner Digital Smile Assessment',
+    category: 'Healthcare & Dental',
+    description: '3D digital optical scan of dentition, bite alignment analysis, and virtual simulation of custom clear aligner results.',
+    duration_minutes: 30,
+    buffer_minutes: 10,
+    price: 15000,
+    currency: 'NGN',
+    is_active: true,
+    icon: 'Smile'
+  }
+];
 
 
 export async function getServices(req: Request, res: Response) {

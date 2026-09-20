@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { pool } from '../db/pool';
 import { sendSuccess, sendError } from '../utils/response';
+import { sendRegistrationWelcomeEmail } from '../services/emailService';
 
 function hashPassword(password: string): string {
   return crypto.pbkdf2Sync(password, 'bookme_salt_key_2026', 1000, 64, 'sha512').toString('hex');
@@ -101,6 +102,17 @@ export async function register(req: Request, res: Response) {
     { expiresIn: '7d' }
   );
 
+  // Trigger confirmation welcome email
+  try {
+    await sendRegistrationWelcomeEmail({
+      fullName: full_name.trim(),
+      email: cleanEmail,
+      role: 'BUSINESS_ADMIN',
+    });
+  } catch (emailErr: any) {
+    console.warn('[EmailService Warning]:', emailErr.message);
+  }
+
   return sendSuccess(res, {
     id: userId,
     email: cleanEmail,
@@ -108,6 +120,7 @@ export async function register(req: Request, res: Response) {
     role: 'BUSINESS_ADMIN',
     business_id: null,
     access_token: token,
+    email_dispatched: true,
   }, 201);
 }
 

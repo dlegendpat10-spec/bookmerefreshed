@@ -21,6 +21,9 @@ export interface InMemoryBusiness {
   phone?: string;
   email?: string;
   address?: string;
+  logo_url?: string;
+  hero_image_url?: string;
+  pictures?: string[];
   booking_lead_time_hours?: number;
   slot_interval_minutes?: number;
   max_booking_days_ahead?: number;
@@ -28,7 +31,136 @@ export interface InMemoryBusiness {
   updated_at?: string;
 }
 
-export const IN_MEMORY_BUSINESSES = new Map<string, InMemoryBusiness>();
+export const IN_MEMORY_BUSINESSES = new Map<string, InMemoryBusiness>([
+  ['biz-001', {
+    id: 'biz-001',
+    name: 'Apex Strategy & Advisory',
+    slug: 'apex-strategy',
+    tagline: 'Consulting & Legal',
+    description: 'Premier executive advisory, corporate legal counsel, and strategic growth consulting for high-growth ventures.',
+    logo_url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#2563EB',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 802 111 2233',
+    email: 'contact@apexstrategy.ng',
+    address: 'Plot 12, Adeola Odeku St, Victoria Island, Lagos'
+  }],
+  ['biz-002', {
+    id: 'biz-002',
+    name: 'Serenity Wellness & Spa Sanctuary',
+    slug: 'serenity-wellness',
+    tagline: 'Wellness & Spa',
+    description: 'Luxury organic wellness sanctuary providing holistic bodywork, hydrotherapy, and signature therapeutic facials.',
+    logo_url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#059669',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 803 222 3344',
+    email: 'hello@serenityspa.ng',
+    address: '24 Bourdillon Road, Ikoyi, Lagos'
+  }],
+  ['biz-003', {
+    id: 'biz-003',
+    name: 'Pulse High-Performance Athletic Lab',
+    slug: 'pulse-performance',
+    tagline: 'Fitness & Health',
+    description: 'State-of-the-art conditioning, metabolic testing, and biomechanical injury rehabilitation for athletes and executives.',
+    logo_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#DC2626',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 805 333 4455',
+    email: 'train@pulsefitness.ng',
+    address: '8 Admiralty Way, Lekki Phase 1, Lagos'
+  }],
+  ['biz-004', {
+    id: 'biz-004',
+    name: 'Lumina Creative Studio & Visual Lab',
+    slug: 'lumina-studio',
+    tagline: 'Creative & Media',
+    description: 'Boutique visual production house specializing in executive portraiture, brand design sprints, and commercial product videography.',
+    logo_url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#7C3AED',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 807 444 5566',
+    email: 'bookings@luminastudio.ng',
+    address: '15 Commercial Avenue, Yaba, Lagos'
+  }],
+  ['biz-005', {
+    id: 'biz-005',
+    name: 'Quantum Cloud & Cyber Systems',
+    slug: 'quantum-cloud',
+    tagline: 'Technology & Software',
+    description: 'Enterprise architecture consultants delivering secure multi-cloud migrations, penetration testing, and generative AI implementations.',
+    logo_url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#0891B2',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 809 555 6677',
+    email: 'solutions@quantumsys.ng',
+    address: '5th Floor, Heritage Tower, Marina, Lagos'
+  }],
+  ['biz-006', {
+    id: 'biz-006',
+    name: 'BrightSmiles Aesthetic Dental Clinic',
+    slug: 'bright-smiles',
+    tagline: 'Healthcare & Dental',
+    description: 'Advanced dental spa specializing in precision cosmetic dentistry, pain-free ultrasonic cleanings, and clear aligner orthodontics.',
+    logo_url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&h=200&q=80',
+    hero_image_url: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1200&h=450&q=80',
+    pictures: [
+      'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80'
+    ],
+    accent_color: '#0D9488',
+    currency: 'NGN',
+    currency_symbol: '₦',
+    locale: 'en-NG',
+    timezone: 'Africa/Lagos',
+    time_format: '12h',
+    phone: '+234 808 666 7788',
+    email: 'care@brightsmiles.ng',
+    address: '18 Isaac John Street, Ikeja GRA, Lagos'
+  }]
+]);
 
 function sanitizeSlug(rawSlug: string): string {
   return rawSlug
@@ -216,7 +348,9 @@ export async function getMyBusiness(req: AuthenticatedRequest, res: Response) {
 
 export async function updateMyBusiness(req: AuthenticatedRequest, res: Response) {
   const businessId = req.business?.id;
-  const { name, slug, category, phone, email, address, description, accentColor } = req.body || {};
+  const { name, slug, category, phone, email, address, description, accentColor, logoUrl, logo_url, heroImageUrl, hero_image_url, pictures } = req.body || {};
+  const resolvedLogo = logoUrl || logo_url;
+  const resolvedHero = heroImageUrl || hero_image_url;
 
   const cleanSlug = slug ? sanitizeSlug(slug) : undefined;
   if (cleanSlug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanSlug)) {
@@ -248,8 +382,11 @@ export async function updateMyBusiness(req: AuthenticatedRequest, res: Response)
              address = COALESCE($6, address),
              description = COALESCE($7, description),
              accent_color = COALESCE($8, accent_color),
+             logo_url = COALESCE($9, logo_url),
+             hero_image_url = COALESCE($10, hero_image_url),
+             pictures = COALESCE($11, pictures),
              updated_at = NOW()
-         WHERE id = $9
+         WHERE id = $12
          RETURNING *`,
         [
           name ? name.trim() : null,
@@ -260,6 +397,9 @@ export async function updateMyBusiness(req: AuthenticatedRequest, res: Response)
           address || null,
           description || null,
           accentColor || null,
+          resolvedLogo || null,
+          resolvedHero || null,
+          pictures || null,
           businessId
         ]
       );
@@ -295,6 +435,9 @@ export async function updateMyBusiness(req: AuthenticatedRequest, res: Response)
     ...(address && { address }),
     ...(description !== undefined && { description }),
     ...(accentColor && { accent_color: accentColor }),
+    ...(resolvedLogo && { logo_url: resolvedLogo }),
+    ...(resolvedHero && { hero_image_url: resolvedHero }),
+    ...(pictures !== undefined && { pictures }),
     updated_at: new Date().toISOString(),
   };
 

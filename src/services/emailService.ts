@@ -323,3 +323,100 @@ export function getDispatchedEmails(businessId?: string): EmailMessage[] {
   }
   return EMAIL_DISPATCH_LOGS;
 }
+
+export async function sendRegistrationWelcomeEmail(params: {
+  fullName: string;
+  email: string;
+  role: string;
+  businessName?: string;
+}): Promise<EmailMessage> {
+  const timestamp = new Date().toISOString();
+  const subject = `Welcome to BookMe — Your Account is Ready!`;
+  const roleDisplay = params.role === 'BUSINESS_ADMIN' ? 'Business Partner / Merchant' : 'Client Customer';
+
+  const textBody = `Hello ${params.fullName},\n\nWelcome to BookMe! Your account registration has been confirmed.\n\nRole: ${roleDisplay}\nAccount Email: ${params.email}\n${params.businessName ? `Business: ${params.businessName}\n` : ''}\nYou can now sign in at any time to manage appointments and access our verified directory.\n\nBest regards,\nThe BookMe Platform Team`;
+
+  const htmlBody = generateEmailTemplate(
+    'Registration Confirmed',
+    `Welcome to the BookMe Platform, ${params.fullName}!`,
+    `
+      <p>Hello <strong>${params.fullName}</strong>,</p>
+      <p>Thank you for registering with <strong>BookMe</strong>. Your new account is now active and ready for use.</p>
+      <div class="card">
+        <p style="margin: 4px 0;"><strong>Registered Email:</strong> <a href="mailto:${params.email}" style="color: #60a5fa;">${params.email}</a></p>
+        <p style="margin: 4px 0;"><strong>Account Role:</strong> <span class="badge" style="background: #10b98122; color: #34d399; border: 1px solid #10b981;">${roleDisplay}</span></p>
+        ${params.businessName ? `<p style="margin: 4px 0;"><strong>Business Profile:</strong> ${params.businessName}</p>` : ''}
+        <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #34d399; font-weight: 700;">Active & Verified</span></p>
+      </div>
+      <p>You can browse verified services, book instant appointments, and manage schedules across devices seamlessly.</p>
+    `
+  );
+
+  const log: EmailMessage = {
+    id: 'em-reg-' + Date.now(),
+    to: params.email,
+    recipientRole: params.role === 'BUSINESS_ADMIN' ? 'ADMIN' : 'CLIENT',
+    businessId: '',
+    bookingReference: 'REG-' + Math.floor(100000 + Math.random() * 900000),
+    subject,
+    textBody,
+    htmlBody,
+    status: 'SENT',
+    sentAt: timestamp,
+  };
+
+  EMAIL_DISPATCH_LOGS.unshift(log);
+  console.log(`[EmailService] Dispatched Registration Confirmation Email to ${params.email}: "${subject}"`);
+  return log;
+}
+
+export async function sendPasswordResetEmail(params: {
+  email: string;
+  resetToken: string;
+  resetUrl: string;
+  fullName?: string;
+}): Promise<EmailMessage> {
+  const timestamp = new Date().toISOString();
+  const subject = `Reset Your BookMe Password — Secure Action Link`;
+  const name = params.fullName || 'BookMe User';
+
+  const textBody = `Hello ${name},\n\nWe received a request to reset your password for your BookMe account.\n\nTo reset your password, please click the link below (valid for 1 hour):\n${params.resetUrl}\n\nSecurity Token: ${params.resetToken}\n\nIf you did not request a password reset, you can safely ignore this email.\n\nBest regards,\nThe BookMe Security Team`;
+
+  const htmlBody = generateEmailTemplate(
+    'Password Reset Request',
+    'Action required to restore your account access',
+    `
+      <p>Hello <strong>${name}</strong>,</p>
+      <p>We received a request to reset the password associated with your account: <a href="mailto:${params.email}" style="color: #60a5fa;">${params.email}</a>.</p>
+      <div class="card" style="text-align: center; padding: 24px;">
+        <p style="margin-bottom: 16px; color: #94a3b8; font-size: 0.95rem;">Click the button below to choose a new password. This link is valid for <strong>1 hour</strong>.</p>
+        <a href="${params.resetUrl}" style="display: inline-block; background: #10b981; color: #ffffff; text-decoration: none; padding: 12px 28px; font-weight: 700; border-radius: 8px; font-size: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+          Reset Password Now &rarr;
+        </a>
+        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #334155; font-size: 12px; color: #64748b; word-break: break-all;">
+          Or copy and paste this link into your browser:<br/>
+          <a href="${params.resetUrl}" style="color: #38bdf8;">${params.resetUrl}</a>
+        </div>
+      </div>
+      <p style="font-size: 0.85rem; color: #94a3b8;">If you did not request this password reset, please disregard this email. Your password will remain unchanged.</p>
+    `
+  );
+
+  const log: EmailMessage = {
+    id: 'em-reset-' + Date.now(),
+    to: params.email,
+    recipientRole: 'CLIENT',
+    businessId: '',
+    bookingReference: 'RST-' + Math.floor(100000 + Math.random() * 900000),
+    subject,
+    textBody,
+    htmlBody,
+    status: 'SENT',
+    sentAt: timestamp,
+  };
+
+  EMAIL_DISPATCH_LOGS.unshift(log);
+  console.log(`[EmailService] Dispatched Password Reset Email to ${params.email}: "${subject}" (URL: ${params.resetUrl})`);
+  return log;
+}
+
