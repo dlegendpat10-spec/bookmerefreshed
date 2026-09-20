@@ -42,7 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 // Root welcome & API info endpoint (Handles GET /)
 app.get('/', (req: Request, res: Response) => {
   sendSuccess(res, {
-    message: 'Bookme REST API Server',
+    message: 'Bookmi REST API Server',
     status: 'online',
     version: '1.0.0',
     healthCheck: '/health',
@@ -58,7 +58,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API v1 Base Route Info
 app.get('/api/v1', (req: Request, res: Response) => {
   sendSuccess(res, {
-    message: 'Bookme API v1 Endpoints',
+    message: 'Bookmi API v1 Endpoints',
     status: 'online',
     endpoints: [
       'GET /health',
