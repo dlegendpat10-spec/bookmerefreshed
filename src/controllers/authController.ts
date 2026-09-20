@@ -315,9 +315,7 @@ export async function forgotPassword(req: Request, res: Response) {
   });
 
   return sendSuccess(res, {
-    message: `A secure password reset link has been dispatched to ${cleanEmail}.`,
-    reset_token: resetToken,
-    reset_url: resetUrl,
+    message: `A secure password reset link has been dispatched to ${cleanEmail}.`
   });
 }
 
